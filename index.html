@@ -700,7 +700,7 @@
     <div class="nav-links">
       <a href="#panorama">Panorama Minatitlán</a>
       <a href="#estrategia">Estrategia & Precios</a>
-      <a href="#imagenes">20 Imágenes</a>
+      <a href="#imagenes">24 Imágenes</a>
       <a href="#videos">10 Videos Full HD</a>
       <a href="#plan">Plan 14 Días</a>
       <a class="nav-wa" href="https://wa.me/5219221038332?text=Hola%20Yessy%2C%20vi%20la%20propuesta%20de%20Eterna%20Clinic" target="_blank">WhatsApp 922 103 8332</a>
@@ -718,7 +718,7 @@
       </p>
       <div class="hero-stats">
         <div class="hstat"><strong>2</strong><span>Servicios regenerativos</span></div>
-        <div class="hstat"><strong>20</strong><span>Anuncios en imagen 4:5</span></div>
+        <div class="hstat"><strong>24</strong><span>Anuncios en imagen 4:5</span></div>
         <div class="hstat"><strong>10</strong><span>Videos Full HD 9:16</span></div>
         <div class="hstat"><strong>$900–$1K</strong><span>Ahorro en paquete 3x</span></div>
       </div>
@@ -899,11 +899,12 @@
   </div>
 
   <div class="tabs" id="img-tabs">
-    <button class="tab-btn active" data-filter="editorial">❄ Edición Navideña Minatitlán (10)</button>
+    <button class="tab-btn active" data-filter="santa">🎅 Especial Santa &amp; Navidad (4)</button>
+    <button class="tab-btn" data-filter="editorial">❄ Creativos Navideños (10)</button>
     <button class="tab-btn" data-filter="clasica">Edición Clásica (10)</button>
-    <button class="tab-btn" data-filter="kr">Kiara Reju (10)</button>
-    <button class="tab-btn" data-filter="exo">ExoPDRN (10)</button>
-    <button class="tab-btn" data-filter="all">Todas (20)</button>
+    <button class="tab-btn" data-filter="kr">Kiara Reju (12)</button>
+    <button class="tab-btn" data-filter="exo">ExoPDRN (12)</button>
+    <button class="tab-btn" data-filter="all">Todas (24)</button>
   </div>
 
   <div class="ad-grid" id="img-grid"></div>
@@ -984,6 +985,47 @@
 
 <script>
 const IMAGENES = [
+  // ===== ESPECIAL SANTA & NAVIDAD LLAMATIVOS (CANVA AI - 4) =====
+  {
+    id: "SANTA-KR-01",
+    cat: "kr",
+    ed: "santa",
+    servicio: "Kiara Reju · Santa Mujer",
+    file: "imagenes_santa/santa_kr_01.png",
+    titulo: "🎅 Santa Mujer Glamurosa: ¡Regálate piel Glass Skin!",
+    angulo: "Alto impacto en feed de Minatitlán: Santa mujer radiante sosteniendo el sérum brillante.",
+    copy: "🎅✨ ¡Esta Navidad regálate piel Glass Skin en Minatitlán! Kiara Reju (PDRN + Ácido Hialurónico + Niacinamida) sin rellenos ni cirugía. Promo Navideña: 3 sesiones por $4,500 MXN (ahorras $900) · 1 sesión $1,800. Consultorio en Díaz Ordaz o a domicilio. Escribe «CITA» al WhatsApp 922 103 8332."
+  },
+  {
+    id: "SANTA-KR-02",
+    cat: "kr",
+    ed: "santa",
+    servicio: "Kiara Reju · Santa Claus",
+    file: "imagenes_santa/santa_kr_02.png",
+    titulo: "🎅 ¡Hasta Santa quiere el secreto del Glass Skin!",
+    angulo: "Divertido y rompe-scroll para Facebook/Instagram local: Santa sorprendido con el sérum mágico.",
+    copy: "🎅🌟 ¡Hasta Santa se sorprendió con el efecto Glass Skin de Kiara Reju! Promoción Navideña exclusiva para gente de Minatitlán: 3 sesiones $4,500 MXN (ahorras $900) · 1 sesión $1,800 · Aceptamos abonos. Escríbenos «CITA» al WhatsApp 922 103 8332."
+  },
+  {
+    id: "SANTA-EXO-01",
+    cat: "exo",
+    ed: "santa",
+    servicio: "ExoPDRN · Santa Mujer Lujo",
+    file: "imagenes_santa/santa_exo_01.png",
+    titulo: "🎅 Santa Mujer de Lujo: Regálate piel firme esta Navidad",
+    angulo: "Glamour navideño 35–55+: ExoPDRN con exosomas + PDRN para colágeno nuevo y firmeza.",
+    copy: "✨❄️ Regálate piel firme y luminosa esta Navidad en Minatitlán. ExoPDRN (Exosomas + PDRN) despierta tu colágeno propio sin cirugía. Promo Navideña: 3 sesiones $5,000 MXN (ahorras $1,000) · 1 sesión $2,000. Consultorio o a domicilio. Manda «CITA» al 922 103 8332."
+  },
+  {
+    id: "SANTA-EXO-02",
+    cat: "exo",
+    ed: "santa",
+    servicio: "ExoPDRN · Regalo Mágico Santa",
+    file: "imagenes_santa/santa_exo_02.png",
+    titulo: "🎁 El regalo mágico de Santa: 3 ampolletas ExoPDRN",
+    angulo: "Visual mágico del protocolo de 3 sesiones saliendo del cofre navideño de Santa.",
+    copy: "🎁✨ El regalo mágico para tu piel esta Navidad en Minatitlán: protocolo de 3 sesiones de ExoPDRN por $5,000 MXN (ahorras $1,000 vs. precio individual de $2,000). Aceptamos abonos · Consultorio en Díaz Ordaz o a domicilio. WhatsApp 922 103 8332 · Escribe «CITA»."
+  },
   // ===== EDICION REVISTA DE LUJO (10 DISEÑOS DISTINTOS) =====
   {
     id: "ED-KR-01",
@@ -1370,16 +1412,18 @@ async function downloadAsset(url, filename, btn) {
   setTimeout(() => btn.textContent = old, 1800);
 }
 
-function renderImages(filter = "editorial") {
+function renderImages(filter = "santa") {
   const grid = document.getElementById("img-grid");
   const st = loadReview();
   const list = filter === "all"
     ? IMAGENES
-    : filter === "editorial"
-      ? IMAGENES.filter(x => x.ed === "editorial")
-      : filter === "clasica"
-        ? IMAGENES.filter(x => x.ed !== "editorial")
-        : IMAGENES.filter(x => x.cat === filter);
+    : filter === "santa"
+      ? IMAGENES.filter(x => x.ed === "santa")
+      : filter === "editorial"
+        ? IMAGENES.filter(x => x.ed === "editorial")
+        : filter === "clasica"
+          ? IMAGENES.filter(x => !x.ed)
+          : IMAGENES.filter(x => x.cat === filter);
   grid.innerHTML = list.map(ad => {
     const isFav = !!st.favs[ad.id];
     const com = st.comments[ad.id] || "";
