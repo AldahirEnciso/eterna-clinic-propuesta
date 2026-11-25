@@ -547,11 +547,137 @@
     background: var(--navy-deep);
     color: rgba(255,255,255,0.78);
     text-align: center;
-    padding: 40px 20px;
+    padding: 40px 20px 110px;
     margin-top: 40px;
     font-size: 13.5px;
   }
   footer strong { color: var(--gold-light); }
+
+  /* SISTEMA DE APROBACION Y COMENTARIOS */
+  .review-controls {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+  }
+  .btn-fav {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 9px 12px;
+    border-radius: 12px;
+    font-size: 12.5px;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: inherit;
+    background: #FFF9F0;
+    color: #8B1E2B;
+    border: 1.5px solid #E8D2A2;
+    transition: .2s;
+  }
+  .btn-fav.selected {
+    background: #8B1E2B;
+    color: #FDF4DF;
+    border-color: #8B1E2B;
+  }
+  .ad-card.is-fav {
+    border-color: #8B1E2B;
+    box-shadow: 0 12px 30px rgba(139,30,43,0.14);
+  }
+  .comment-box {
+    margin-top: 6px;
+  }
+  .comment-input {
+    width: 100%;
+    min-height: 54px;
+    resize: vertical;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 9px 12px;
+    font-family: inherit;
+    font-size: 12.8px;
+    color: var(--ink);
+    background: #FCFBF9;
+    transition: .2s;
+  }
+  .comment-input:focus {
+    outline: none;
+    border-color: var(--gold);
+    background: #FFFFFF;
+  }
+  .comment-saved {
+    font-size: 11px;
+    color: var(--ok);
+    font-weight: 700;
+    margin-top: 3px;
+    min-height: 15px;
+  }
+  .review-dock {
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    z-index: 150;
+    max-width: 1020px;
+    margin: 0 auto;
+    background: rgba(5, 34, 49, 0.96);
+    backdrop-filter: blur(14px);
+    border: 1.5px solid rgba(243, 213, 141, 0.65);
+    border-radius: 20px;
+    padding: 13px 20px;
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+    box-shadow: 0 18px 46px rgba(4, 20, 30, 0.45);
+  }
+  .dock-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13.5px;
+    font-weight: 600;
+  }
+  .dock-badge {
+    background: #8B1E2B;
+    color: #FDF4DF;
+    border: 1px solid #F3D58D;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+  }
+  .dock-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .dock-btn {
+    border: none;
+    border-radius: 12px;
+    padding: 10px 16px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: .2s;
+  }
+  .dock-wa {
+    background: linear-gradient(135deg, #25D366, #1DA851);
+    color: #FFFFFF;
+  }
+  .dock-copy {
+    background: rgba(255,255,255,0.12);
+    color: #FFFFFF;
+    border: 1px solid rgba(255,255,255,0.22);
+  }
+  .dock-txt {
+    background: #F3D58D;
+    color: #052231;
+  }
 
   @media (max-width: 960px) {
     .hero-in, .callout, .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
@@ -838,6 +964,18 @@
   <p><strong>ETERNA CLINIC</strong> · Medicina Estética y Regenerativa No Invasiva · Col. Díaz Ordaz, Minatitlán, Veracruz</p>
   <p style="margin-top:6px;">WhatsApp de citas: <strong>+52 1 922 103 8332</strong> · Propuesta estratégica y producción creativa lista para campaña.</p>
 </footer>
+
+<div class="review-dock" id="review-dock">
+  <div class="dock-info">
+    <span class="dock-badge" id="dock-count">♥ 0 favoritos · 💬 0 comentarios</span>
+    <span>Marca tus favoritos o escribe ajustes en cada imagen/video y envíalos en 1 clic.</span>
+  </div>
+  <div class="dock-actions">
+    <button class="dock-btn dock-copy" onclick="copyReview(this)">📋 Copiar resumen</button>
+    <button class="dock-btn dock-txt" onclick="downloadReviewTxt()">⬇ Guardar .TXT</button>
+    <button class="dock-btn dock-wa" onclick="sendReviewWhatsApp()">📲 Enviar por WhatsApp</button>
+  </div>
+</div>
 
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
   <button class="lightbox-close" onclick="closeLightbox()">×</button>
@@ -1133,8 +1271,108 @@ const VIDEOS = [
   }
 ];
 
+const STORAGE_KEY = "eterna_clinic_review_v1";
+function loadReview() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{"favs":{},"comments":{}}'); }
+  catch { return { favs: {}, comments: {} }; }
+}
+function saveReview(state) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  updateDock();
+}
+function toggleFav(id) {
+  const st = loadReview();
+  if (st.favs[id]) delete st.favs[id]; else st.favs[id] = true;
+  saveReview(st);
+  const btn = document.getElementById("fav-" + id);
+  const card = document.getElementById("card-" + id);
+  if (btn) {
+    const on = !!st.favs[id];
+    btn.classList.toggle("selected", on);
+    btn.textContent = on ? "♥ Aprobado / Favorito" : "♡ Me gusta";
+  }
+  if (card) card.classList.toggle("is-fav", !!st.favs[id]);
+}
+function saveComment(id, val) {
+  const st = loadReview();
+  const clean = val.trim();
+  if (clean) st.comments[id] = clean; else delete st.comments[id];
+  saveReview(st);
+  const el = document.getElementById("saved-" + id);
+  if (el) el.textContent = clean ? "✓ Comentario guardado" : "";
+}
+function updateDock() {
+  const st = loadReview();
+  const fCount = Object.keys(st.favs).length;
+  const cCount = Object.keys(st.comments).length;
+  const badge = document.getElementById("dock-count");
+  if (badge) badge.textContent = `♥ ${fCount} favoritos · 💬 ${cCount} comentarios`;
+}
+function buildReviewSummary() {
+  const st = loadReview();
+  const favIds = Object.keys(st.favs);
+  const comIds = Object.keys(st.comments);
+  const allItems = [...IMAGENES, ...VIDEOS];
+  const getTitle = id => (allItems.find(x => x.id === id) || {}).titulo || "";
+  let lines = ["*REVISIÓN PROPUESTA NAVIDEÑA — ETERNA CLINIC*", ""];
+  if (favIds.length) {
+    lines.push(`*♥ APROBADOS / FAVORITOS (${favIds.length}):*`);
+    favIds.forEach(id => lines.push(`• ${id} — ${getTitle(id)}`));
+    lines.push("");
+  }
+  if (comIds.length) {
+    lines.push(`*💬 COMENTARIOS Y AJUSTES (${comIds.length}):*`);
+    comIds.forEach(id => lines.push(`• ${id}: ${st.comments[id]}`));
+    lines.push("");
+  }
+  if (!favIds.length && !comIds.length) {
+    lines.push("Aún no se marcaron favoritos ni comentarios específicos.");
+  }
+  return lines.join("\n");
+}
+function copyReview(btn) {
+  navigator.clipboard.writeText(buildReviewSummary()).then(() => {
+    const old = btn.textContent;
+    btn.textContent = "✓ ¡Resumen copiado!";
+    setTimeout(() => btn.textContent = old, 1800);
+  });
+}
+function downloadReviewTxt() {
+  const blob = new Blob([buildReviewSummary()], { type: "text/plain;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "revision-eterna-clinic.txt";
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+function sendReviewWhatsApp() {
+  const txt = encodeURIComponent(buildReviewSummary());
+  window.open("https://wa.me/?text=" + txt, "_blank");
+}
+async function downloadAsset(url, filename, btn) {
+  const old = btn.textContent;
+  btn.textContent = "Descargando...";
+  try {
+    const res = await fetch(url);
+    const blob = await res.blob();
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+    btn.textContent = "✓ Descargado";
+  } catch {
+    window.open(url, "_blank");
+    btn.textContent = old;
+  }
+  setTimeout(() => btn.textContent = old, 1800);
+}
+
 function renderImages(filter = "editorial") {
   const grid = document.getElementById("img-grid");
+  const st = loadReview();
   const list = filter === "all"
     ? IMAGENES
     : filter === "editorial"
@@ -1142,8 +1380,11 @@ function renderImages(filter = "editorial") {
       : filter === "clasica"
         ? IMAGENES.filter(x => x.ed !== "editorial")
         : IMAGENES.filter(x => x.cat === filter);
-  grid.innerHTML = list.map(ad => `
-    <article class="ad-card">
+  grid.innerHTML = list.map(ad => {
+    const isFav = !!st.favs[ad.id];
+    const com = st.comments[ad.id] || "";
+    return `
+    <article class="ad-card ${isFav ? 'is-fav' : ''}" id="card-${ad.id}">
       <div class="ad-media" onclick="openLightbox('${ad.file}')">
         <img src="${ad.file}" alt="${ad.titulo}" loading="lazy">
       </div>
@@ -1158,27 +1399,38 @@ function renderImages(filter = "editorial") {
           <strong>Copy listo para publicar</strong>
           ${ad.copy}
         </div>
+        <div class="review-controls">
+          <button id="fav-${ad.id}" class="btn-fav ${isFav ? 'selected' : ''}" onclick="toggleFav('${ad.id}')">${isFav ? '♥ Aprobado / Favorito' : '♡ Me gusta'}</button>
+        </div>
+        <div class="comment-box">
+          <textarea class="comment-input" placeholder="💬 Escribe aquí un comentario o ajuste para ${ad.id}..." oninput="saveComment('${ad.id}', this.value)">${com.replace(/</g,'&lt;')}</textarea>
+          <div class="comment-saved" id="saved-${ad.id}">${com ? '✓ Comentario guardado' : ''}</div>
+        </div>
         <div class="ad-actions">
           <button class="btn btn-ghost" onclick="copyText(this, \`${ad.copy.replace(/`/g, '')}\`)">Copiar copy</button>
-          <a class="btn btn-primary" href="${ad.file}" download="${ad.id}.png">Descargar PNG</a>
+          <button class="btn btn-primary" onclick="downloadAsset('${ad.file}', '${ad.id}.png', this)">⬇ Descargar PNG</button>
         </div>
       </div>
-    </article>
-  `).join("");
+    </article>`;
+  }).join("");
 }
 
 function renderVideos(filter = "all") {
   const grid = document.getElementById("vid-grid");
+  const st = loadReview();
   const list = filter === "all" ? VIDEOS : VIDEOS.filter(x => x.cat === filter);
-  grid.innerHTML = list.map(v => `
-    <article class="ad-card">
+  grid.innerHTML = list.map(v => {
+    const isFav = !!st.favs[v.id];
+    const com = st.comments[v.id] || "";
+    return `
+    <article class="ad-card ${isFav ? 'is-fav' : ''}" id="card-${v.id}">
       <div class="ad-video-wrap">
         <video controls playsinline preload="metadata" src="${v.file}"></video>
       </div>
       <div class="ad-body">
         <div class="ad-meta">
           <span class="ad-chip ${v.cat === 'kr' ? 'chip-kr' : 'chip-exo'}">${v.servicio}</span>
-          <span class="ad-id">${v.id} · 9:16 con voz</span>
+          <span class="ad-id">${v.id} · 1080×1920 con voz</span>
         </div>
         <h3 class="ad-title">${v.titulo}</h3>
         <p class="ad-angle"><strong>Enfoque:</strong> ${v.angulo}</p>
@@ -1186,12 +1438,19 @@ function renderVideos(filter = "all") {
           <strong>Guion de locución (Voz MX)</strong>
           ${v.guion}
         </div>
+        <div class="review-controls">
+          <button id="fav-${v.id}" class="btn-fav ${isFav ? 'selected' : ''}" onclick="toggleFav('${v.id}')">${isFav ? '♥ Aprobado / Favorito' : '♡ Me gusta'}</button>
+        </div>
+        <div class="comment-box">
+          <textarea class="comment-input" placeholder="💬 Escribe aquí un comentario o ajuste para ${v.id}..." oninput="saveComment('${v.id}', this.value)">${com.replace(/</g,'&lt;')}</textarea>
+          <div class="comment-saved" id="saved-${v.id}">${com ? '✓ Comentario guardado' : ''}</div>
+        </div>
         <div class="ad-actions">
-          <a class="btn btn-primary" href="${v.file}" download="${v.id}.mp4">Descargar MP4</a>
+          <button class="btn btn-primary" onclick="downloadAsset('${v.file}', '${v.id}.mp4', this)">⬇ Descargar MP4</button>
         </div>
       </div>
-    </article>
-  `).join("");
+    </article>`;
+  }).join("");
 }
 
 function setupTabs(containerId, renderFn) {
@@ -1222,6 +1481,7 @@ function copyText(btn, text) {
 
 renderImages();
 renderVideos();
+updateDock();
 setupTabs("img-tabs", renderImages);
 setupTabs("vid-tabs", renderVideos);
 </script>
